@@ -1,0 +1,4 @@
+---
+roles_common_domain_name: '{{ lookup("env","DOMAIN_NAME") }}'
+ssl_certificate_use_mysql: '{{ lookup("env","USE_MYSQL") }}'
+ssl_certificate_use_postgre_sql: '{{ lookup("env","USE_POSTGRE_SQL") }}'

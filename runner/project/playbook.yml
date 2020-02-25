@@ -1,0 +1,4 @@
+---
+- hosts: default
+  roles:
+    - role: ansible-role-ssl-certificate-amazon-linux

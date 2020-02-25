@@ -1,0 +1,3 @@
+[submodule "runner/project/roles/ansible-role-ssl-certificate-amazon-linux"]
+	path = runner/project/roles/ansible-role-ssl-certificate-amazon-linux
+	url = https://github.com/yukihiko-shinoda/ansible-role-ssl-certificate-amazon-linux.git
