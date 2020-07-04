@@ -78,9 +78,6 @@ services:
 
 volumes:
   pki:
-    driver_opts:
-      type: tmpfs
-      device: tmpfs
 ```
 
 2\.
@@ -118,6 +115,23 @@ done
 
 Run ```docker-compose up```, then SSL enabled MySQL will start.
 
+## Access web service by browser
+
+1\.
+
+Pick up self signed certificate from shared volume.
+For example, in case when `web` container using volume:
+
+```console
+docker cp web:/etc/pki/CA/cacert-domain.name.pem ./cacert-domain.name.pem
+```
+
+2\.
+
+Install `cacert-domain.name.pem` into your browswer.
+
+cf. [Answer: How do I deal with NET:ERR_CERT_AUTHORITY_INVALID in Chrome?](https://superuser.com/questions/1083766/how-do-i-deal-with-neterr-cert-authority-invalid-in-chrome/1083768#1083768)
+
 ## Environment Variables
 
 ### ```DOMAIN_NAME```
@@ -129,7 +143,6 @@ Domain name for install SSL certificate.
 When set ```true```, mysql user can access to
 private key for server to enable SSL.
 By default, only root user can access to private key for server.
-
 
 ### ```USE_POSTGRE_SQL```
 
