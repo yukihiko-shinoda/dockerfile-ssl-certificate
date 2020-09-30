@@ -38,7 +38,11 @@ Certificate for server
 # How to use this image
 
 ```console
-docker run --env DOMAIN_NAME=exampledomain.com -v /etc/pki:/etc/pki futureys/ssl-certificate
+docker run --env DOMAIN_NAME=exampledomain.com \
+           -v $(pwd)/CA:/etc/pki/CA \
+           -v $(pwd)/tls/certs:/etc/pki/tls/certs \
+           -v $(pwd)/tls/private:/etc/pki/tls/private \
+           futureys/ssl-certificate
 ```
 
 ## ... via docker-compose
@@ -57,7 +61,6 @@ services:
     container_name: ssl_certificate
     environment:
       DOMAIN_NAME: exampledomain.com
-      USE_MYSQL: 'true'
     image: futureys/ssl-certificate:latest
     volumes:
       - pki:/etc/pki
@@ -73,8 +76,8 @@ services:
       MYSQL_PASSWORD: ${DATABASE_USER_PASSWORD}
     volumes:
       - pki:/etc/pki
+      - ./database_entrypoint/setup-certificate.sh:/usr/local/bin/setup-certificate.sh
       - ./mysql_conf.d:/etc/mysql/conf.d
-      - ./initdb.d:/docker-entrypoint-initdb.d
 
 volumes:
   pki:
@@ -96,19 +99,32 @@ ssl-key = /etc/pki/tls/private/serverkey-exampledomain.com.pem
 
 3\.
 
-Prepare shell script in ```initdb.d``` directory
-to wait for creating certificate before MySQL start:
+Prepare Shell Script `./database_entrypoint/setup-certificate.sh`
+to wait for creating certificate and set appropriate permission to certificate before MySQL start:
 
 ```sh
 #!/usr/bin/env sh
 DOMAIN_NAME="exampledomain.com"
-while :
-do
-    if [ -r "/etc/pki/tls/certs/servercert-${DOMAIN_NAME}.pem" ]; then
+SERVERCERT="/etc/pki/tls/certs/servercert-${DOMAIN_NAME}.pem"
+SERVERKEY="/etc/pki/tls/private/serverkey-${DOMAIN_NAME}.pem"
+while :; do
+    if [ -r "${SERVERCERT}" ]; then
         break
     fi
     sleep 1
 done
+
+group_database=$([ $(which postgres) ] && echo "postgres" || echo "mysql")
+
+chown "root:${group_database}" "${SERVERKEY}"
+chmod 640 "${SERVERKEY}"
+# "docker-entrypoint.sh" is default ENTRYPOINT of Docker Hub official database images.
+# see: https://github.com/docker-library/mysql/blob/8e6735541864ab63c98cdf92d3ef498e4c953f3e/8.0/Dockerfile
+# see: https://github.com/docker-library/mysql/blob/8e6735541864ab63c98cdf92d3ef498e4c953f3e/5.7/Dockerfile
+# see: https://github.com/docker-library/mysql/blob/8e6735541864ab63c98cdf92d3ef498e4c953f3e/5.6/Dockerfile
+# see: https://github.com/docker-library/postgres/blob/b80fcb5ac7f6dde712e70d2d53a88bf880700fde/Dockerfile-debian.template
+# see: https://github.com/docker-library/postgres/blob/b80fcb5ac7f6dde712e70d2d53a88bf880700fde/Dockerfile-alpine.template
+exec docker-entrypoint.sh "$@"
 ```
 
 4\.
@@ -137,18 +153,6 @@ cf. [Answer: How do I deal with NET:ERR_CERT_AUTHORITY_INVALID in Chrome?](https
 ### ```DOMAIN_NAME```
 
 Domain name for install SSL certificate.
-
-### ```USE_MYSQL```
-
-When set ```true```, mysql user can access to
-private key for server to enable SSL.
-By default, only root user can access to private key for server.
-
-### ```USE_POSTGRE_SQL```
-
-When set ```true```, postgres user can access to
-private key for server to enable SSL.
-By default, only root user can access to private key for server.
 
 # License
 
