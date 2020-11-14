@@ -51,29 +51,31 @@ This example is to enable SSL on MySQL database.
 
 1\.
 
-Prepare ```docker-compose.yml```:
+Prepare `docker-compose.yml`:
 
 ```yaml
 ---
-version: '3.7'
+version: '3.8'
 services:
   ssl_certificate:
-    container_name: ssl_certificate
     environment:
-      DOMAIN_NAME: exampledomain.com
+      DOMAIN_NAME: ${DOMAIN_NAME}
     image: futureys/ssl-certificate:latest
     volumes:
       - pki:/etc/pki
 
   database:
-    container_name: database
+    command:
+      - --ssl-ca=/etc/pki/CA/cacert-${DOMAIN_NAME}.pem
+      - --ssl-cert=/etc/pki/tls/certs/servercert-${DOMAIN_NAME}.pem
+      - --ssl-key=/etc/pki/tls/private/serverkey-${DOMAIN_NAME}.pem
     depends_on:
       - ssl_certificate
+    entrypoint: setup-certificate.sh
     environment:
+      DOMAIN_NAME: ${DOMAIN_NAME}
       MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
-      MYSQL_DATABASE: service
-      MYSQL_USER: app
-      MYSQL_PASSWORD: ${DATABASE_USER_PASSWORD}
+    image: mysql
     volumes:
       - pki:/etc/pki
       - ./database_entrypoint/setup-certificate.sh:/usr/local/bin/setup-certificate.sh
@@ -85,16 +87,12 @@ volumes:
 
 2\.
 
-Prepare ```mysql_conf.d/ssl.cnf```:
+Prepare `mysql_conf.d/ssl.cnf`:
 
 ```ini
 [mysqld]
 # To force SSL connection
 require_secure_transport = ON
-# SSL settings
-ssl-ca = /etc/pki/CA/cacert-exampledomain.com.pem
-ssl-cert = /etc/pki/tls/certs/servercert-exampledomain.com.pem
-ssl-key = /etc/pki/tls/private/serverkey-exampledomain.com.pem
 ```
 
 3\.
@@ -104,7 +102,6 @@ to wait for creating certificate and set appropriate permission to certificate b
 
 ```sh
 #!/usr/bin/env sh
-DOMAIN_NAME="exampledomain.com"
 SERVERCERT="/etc/pki/tls/certs/servercert-${DOMAIN_NAME}.pem"
 SERVERKEY="/etc/pki/tls/private/serverkey-${DOMAIN_NAME}.pem"
 while :; do
@@ -129,7 +126,7 @@ exec docker-entrypoint.sh "$@"
 
 4\.
 
-Run ```docker-compose up```, then SSL enabled MySQL will start.
+Run `docker-compose up`, then SSL enabled MySQL will start.
 
 ## Access web service by browser
 
