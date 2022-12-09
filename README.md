@@ -1,7 +1,6 @@
 <!-- markdownlint-disable first-line-h1 -->
-[![docker build automated?](https://img.shields.io/docker/cloud/automated/futureys/ssl-certificate.svg)](https://hub.docker.com/r/futureys/ssl-certificate/builds)
-[![docker build passing?](https://img.shields.io/docker/cloud/build/futureys/ssl-certificate.svg)](https://hub.docker.com/r/futureys/ssl-certificate/builds)
-[![image size and number of layers](https://images.microbadger.com/badges/image/futureys/ssl-certificate.svg)](https://hub.docker.com/r/futureys/ssl-certificate/dockerfile)
+[![Test](https://github.com/yukihiko-shinoda/dockerfile-ssl-certificate/actions/workflows/test.yml/badge.svg)](https://github.com/yukihiko-shinoda/dockerfile-ssl-certificate/actions/workflows/test.yml)
+[![Docker Image Size (latest semver)](https://img.shields.io/docker/image-size/futureys/ssl-certificate)](https://hub.docker.com/r/futureys/ssl-certificate/dockerfile)
 
 <!-- markdownlint-disable no-trailing-punctuation -->
 # What is SSL Certificate?
