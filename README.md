@@ -54,7 +54,6 @@ Prepare `docker-compose.yml`:
 
 ```yaml
 ---
-version: '3.8'
 services:
   ssl_certificate:
     environment:

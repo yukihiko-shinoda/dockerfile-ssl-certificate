@@ -1,9 +1,31 @@
-# Digest of quay.io/ansible/ansible-runner:stable-2.12-latest
-FROM quay.io/ansible/ansible-runner@sha256:001a4bde411be863d54c1d293f3d2e7b0ff0e67ef5d7b2f9f7fb56b61694f4e8 as production
-RUN yum install -y openssl-1:1.1.1k-7.el8 && yum clean all
+# Migrated from RedHat, It might be oriented towards closed products
+FROM amazonlinux:2023.4.20240401.1 as production
+RUN dnf update -y && dnf install -y python3.11-3.11.6-1.amzn2023.0.1.x86_64 openssl-3.0.8-1.amzn2023.0.11.x86_64 && dnf clean all
+RUN ln -s /usr/bin/python3.11 /usr/bin/python
+# Do not change what the /usr/bin/python3 symlink points to because this might break the core functionality of AL2023:
+# - Python in AL2023 - Amazon Linux 2023
+#   https://docs.aws.amazon.com/linux/al2023/ug/python.html
+RUN curl -O https://bootstrap.pypa.io/get-pip.py \
+ && python get-pip.py --trusted-host pypi.python.org
+RUN python -m pip install --no-cache-dir ansible-runner==2.3.6 ansible-core==2.16.6
+RUN for dir in /home/runner /home/runner/.ansible /home/runner/.ansible/tmp /runner /home/runner /runner/env /runner/inventory /runner/project /runner/artifacts ; \
+    do \
+      mkdir -m 0775 -p $dir ; \
+      chmod -R g+rwx $dir ; \
+      chgrp -R root $dir ; \
+    done \
+ && for file in /home/runner/.ansible/galaxy_token /etc/passwd /etc/group ; \
+    do \
+      touch $file ; \
+      chmod g+rw $file ; \
+      chgrp root $file ; \
+    done
+WORKDIR /runner
+ENV HOME=/home/runner
+CMD ["ansible-runner", "run", "/runner"]
 COPY runner /runner
 ENV RUNNER_PLAYBOOK=playbook.yml
 VOLUME ["/etc/pki"]
 
 FROM production as development
-RUN python3 -m pip install ansible-lint
+RUN python -m pip install --no-cache-dir ansible-lint
