@@ -27,4 +27,4 @@ jobs:
           cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_HUB_IMAGE_NAME }}:buildcache,mode=max
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_HUB_IMAGE_NAME }}:test
       - uses: actions/checkout@v4
-      - run: docker compose -f compose.test.yml run --rm sut
+      - run: docker compose run --rm ansible-runner

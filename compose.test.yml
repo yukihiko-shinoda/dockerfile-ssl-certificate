@@ -1,8 +1,0 @@
----
-services:
-  sut:
-    build:
-      context: .
-      target: production
-    environment:
-      DOMAIN_NAME: exampledomain.com
