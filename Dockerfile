@@ -1,6 +1,6 @@
 # Migrated from RedHat, It might be oriented towards closed products
-FROM amazonlinux:2023.4.20240401.1 as production
-RUN dnf update -y && dnf install -y python3.11-3.11.6-1.amzn2023.0.1.x86_64 openssl-3.0.8-1.amzn2023.0.11.x86_64 && dnf clean all
+FROM amazonlinux:2023.4.20240401.1 AS production
+RUN dnf update -y && dnf install -y python3.11-3.11.6-1.amzn2023.0.1 openssl-3.0.8-1.amzn2023.0.11 && dnf clean all
 RUN ln -s /usr/bin/python3.11 /usr/bin/python
 # Do not change what the /usr/bin/python3 symlink points to because this might break the core functionality of AL2023:
 # - Python in AL2023 - Amazon Linux 2023
@@ -27,5 +27,9 @@ COPY runner /runner
 ENV RUNNER_PLAYBOOK=playbook.yml
 VOLUME ["/etc/pki"]
 
-FROM production as development
+FROM production AS development
+# Reason:
+#   DL3013: For development
+#   SC2174: Maybe hadolint's bug
+# hadolint ignore=DL3013,SC2174
 RUN python -m pip install --no-cache-dir ansible-lint
