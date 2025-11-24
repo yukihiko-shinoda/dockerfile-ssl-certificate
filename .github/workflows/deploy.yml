@@ -21,4 +21,4 @@ jobs:
         with:
           push: true
           builder: ${{ steps.buildx.outputs.name }}
-          target: app-release
+          targets: app-release
