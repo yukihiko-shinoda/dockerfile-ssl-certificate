@@ -6,3 +6,4 @@ services:
       target: production
     environment:
       DOMAIN_NAME: exampledomain.com
+      SUPPORT_ROOT_DOMAIN: ${SUPPORT_ROOT_DOMAIN:-false}

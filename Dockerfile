@@ -26,6 +26,7 @@ CMD ["ansible-runner", "run", "/runner"]
 COPY runner /runner
 ENV RUNNER_PLAYBOOK=playbook.yml
 VOLUME ["/etc/pki"]
+ENV SUPPORT_ROOT_DOMAIN=false
 
 FROM production AS development
 # Reason:
