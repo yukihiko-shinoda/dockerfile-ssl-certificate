@@ -8,8 +8,6 @@ on:
       - main
 jobs:
   test:
-    env:
-      DOCKER_HUB_IMAGE_NAME: 'ssl-certificate'
     runs-on: ubuntu-latest
     steps:
       - uses: docker/setup-qemu-action@v3
@@ -26,7 +24,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           target: app-release
       - uses: actions/checkout@v6
-      - run: docker compose run --rm ssl-certificate
-      - run: docker compose run --rm ssl-certificate
-        env:
-          SUPPORT_ROOT_DOMAIN: true
+      - name: Test that running without SUPPORT_ROOT_DOMAIN should succeed
+        run: docker compose run --rm ssl-certificate
+      - name: Test that SSL certificate should work well
+        run: docker compose -f compose.yml -f compose.test.yml run --rm mysql-client
