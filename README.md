@@ -55,7 +55,7 @@ Prepare `docker-compose.yml`:
 ```yaml
 ---
 services:
-  ssl_certificate:
+  ssl-certificate:
     environment:
       DOMAIN_NAME: ${DOMAIN_NAME}
     image: futureys/ssl-certificate:latest
@@ -68,7 +68,7 @@ services:
       - --ssl-cert=/etc/pki/tls/certs/servercert-${DOMAIN_NAME}.pem
       - --ssl-key=/etc/pki/tls/private/serverkey-${DOMAIN_NAME}.pem
     depends_on:
-      - ssl_certificate
+      - ssl-certificate
     entrypoint: setup-certificate.sh
     environment:
       DOMAIN_NAME: ${DOMAIN_NAME}

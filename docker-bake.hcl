@@ -1,6 +1,6 @@
 variable "DOCKER_TAG" {
 }
-target "ansible-runner" {
+target "ssl-certificate" {
   tags = [
     "futureys/ssl-certificate:latest",
     "futureys/ssl-certificate:${DOCKER_TAG}",
@@ -11,6 +11,6 @@ target "ansible-runner" {
 //   Switch to a different driver, or turn on the containerd image store, and try again.
 //   Learn more at https://docs.docker.com/go/build-multi-platform/
 target "app-release" {
-  inherits = ["ansible-runner"]
+  inherits = ["ssl-certificate"]
   platforms = ["linux/amd64", "linux/arm64"]
 }

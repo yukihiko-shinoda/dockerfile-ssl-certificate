@@ -26,7 +26,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           target: app-release
       - uses: actions/checkout@v6
-      - run: docker compose run --rm ansible-runner
-      - run: docker compose run --rm ansible-runner
+      - run: docker compose run --rm ssl-certificate
+      - run: docker compose run --rm ssl-certificate
         env:
           SUPPORT_ROOT_DOMAIN: true
