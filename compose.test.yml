@@ -1,0 +1,69 @@
+---
+services:
+  # Since the latest version of MySQL is set to use default SSL certificate files,
+  # that SSL certificate isn't able to set CN, we need to create our own SSL certificate files.
+  ssl-certificate:
+    environment:
+      DOMAIN_NAME: database
+      SUPPORT_ROOT_DOMAIN: true
+    volumes:
+      - pki:/etc/pki
+  database:
+    command:
+      - --ssl-ca=/etc/pki/CA/cacert-database.pem
+      - --ssl-cert=/etc/pki/tls/certs/servercert-database.pem
+      - --ssl-key=/etc/pki/tls/private/serverkey-database.pem
+    depends_on:
+      ssl-certificate:
+        condition: service_completed_successfully
+    entrypoint: setup-certificate.sh
+    environment:
+      MYSQL_ROOT_PASSWORD: examplepass
+    healthcheck:
+      test:
+        - CMD
+        - mysqladmin
+        - ping
+        - -h
+        - localhost
+        - -u
+        - root
+        - -pexamplepass
+        - --ssl-mode=REQUIRED
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 30s # Adjust based on your MySQL initialization time
+    image: mysql:9.5.0
+    volumes:
+      # To enable SSL for MySQL serving.
+      - pki:/etc/pki
+      - ./database_entrypoint/setup-certificate.sh:/usr/local/bin/setup-certificate.sh
+
+  mysql-client:
+    build: mysql-client
+    command:
+      - mysql
+      - --ssl-ca=/etc/pki/CA/cacert-database.pem
+      - -h
+      - database
+      - -u
+      - root
+      - -pexamplepass
+      - -e
+      - >-
+        SHOW DATABASES;
+        SHOW GLOBAL VARIABLES LIKE '%ssl%';
+        SHOW SESSION STATUS LIKE 'Ssl_cipher';
+        SELECT User, Host, ssl_type FROM mysql.user;
+        SHOW GLOBAL VARIABLES LIKE 'tls_version';
+    depends_on:
+      database:
+        condition: service_healthy
+      ssl-certificate:
+        condition: service_completed_successfully
+    volumes:
+      # To enable SSL for MySQL serving.
+      - pki:/etc/pki
+volumes:
+  pki:

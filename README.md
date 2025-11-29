@@ -44,39 +44,57 @@ docker run --env DOMAIN_NAME=exampledomain.com \
            futureys/ssl-certificate
 ```
 
-## ... via docker-compose
+## ... via docker compose
 
 This example is to enable SSL on MySQL database.
 
 1\.
 
-Prepare `docker-compose.yml`:
+Prepare `compose.yml`:
 
 ```yaml
 ---
 services:
-  ssl_certificate:
+  ssl-certificate:
     environment:
-      DOMAIN_NAME: ${DOMAIN_NAME}
+      DOMAIN_NAME: database
+      SUPPORT_ROOT_DOMAIN: true
     image: futureys/ssl-certificate:latest
     volumes:
       - pki:/etc/pki
 
   database:
     command:
-      - --ssl-ca=/etc/pki/CA/cacert-${DOMAIN_NAME}.pem
-      - --ssl-cert=/etc/pki/tls/certs/servercert-${DOMAIN_NAME}.pem
-      - --ssl-key=/etc/pki/tls/private/serverkey-${DOMAIN_NAME}.pem
+      - --ssl-ca=/etc/pki/CA/cacert-database.pem
+      - --ssl-cert=/etc/pki/tls/certs/servercert-database.pem
+      - --ssl-key=/etc/pki/tls/private/serverkey-database.pem
     depends_on:
-      - ssl_certificate
+      ssl-certificate:
+        condition: service_completed_successfully
     entrypoint: setup-certificate.sh
     environment:
-      DOMAIN_NAME: ${DOMAIN_NAME}
       MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
-    image: mysql
+    healthcheck:
+      test:
+        - CMD
+        - mysqladmin
+        - ping
+        - -h
+        - localhost
+        - -u
+        - root
+        - -pexamplepass
+        - --ssl-mode=REQUIRED
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 30s # Adjust based on your MySQL initialization time
+    image: mysql:9.5.0
     volumes:
+      # To enable SSL for MySQL serving.
       - pki:/etc/pki
       - ./database_entrypoint/setup-certificate.sh:/usr/local/bin/setup-certificate.sh
+      # For MySQL less than 9.0.0 to enable SSL connection enforcement.
       - ./mysql_conf.d:/etc/mysql/conf.d
 
 volumes:
@@ -85,7 +103,7 @@ volumes:
 
 2\.
 
-Prepare `mysql_conf.d/ssl.cnf`:
+If you are using MySQL less than 9.0.0, prepare `mysql_conf.d/ssl.cnf`:
 
 ```ini
 [mysqld]
@@ -99,15 +117,10 @@ Prepare Shell Script `./database_entrypoint/setup-certificate.sh`
 to wait for creating certificate and set appropriate permission to certificate before MySQL start:
 
 ```sh
-#!/usr/bin/env sh
-SERVERCERT="/etc/pki/tls/certs/servercert-${DOMAIN_NAME}.pem"
+set -eu
+
+DOMAIN_NAME=${DOMAIN_NAME-database}
 SERVERKEY="/etc/pki/tls/private/serverkey-${DOMAIN_NAME}.pem"
-while :; do
-    if [ -r "${SERVERCERT}" ]; then
-        break
-    fi
-    sleep 1
-done
 
 group_database=$([ $(which postgres) ] && echo "postgres" || echo "mysql")
 
@@ -134,12 +147,12 @@ Pick up self signed certificate from shared volume.
 For example, in case when `web` container using volume:
 
 ```console
-docker cp web:/etc/pki/CA/cacert-domain.name.pem ./cacert-domain.name.pem
+docker cp web:/etc/pki/CA/cacert-database.pem ./cacert-database.pem
 ```
 
 2\.
 
-Install `cacert-domain.name.pem` into your browswer.
+Install `cacert-database.pem` into your browser.
 
 cf. [Answer: How do I deal with NET:ERR_CERT_AUTHORITY_INVALID in Chrome?](https://superuser.com/questions/1083766/how-do-i-deal-with-neterr-cert-authority-invalid-in-chrome/1083768#1083768)
 
@@ -148,6 +161,12 @@ cf. [Answer: How do I deal with NET:ERR_CERT_AUTHORITY_INVALID in Chrome?](https
 ### ```DOMAIN_NAME```
 
 Domain name for install SSL certificate.
+
+### ```SUPPORT_ROOT_DOMAIN```
+
+Whether to support root domain for SSL certificate installation.
+Set to `true` to support root domain.
+Default is not to support it.
 
 # License
 

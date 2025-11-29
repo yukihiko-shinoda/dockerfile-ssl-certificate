@@ -1,6 +1,6 @@
 ---
 services:
-  ansible-runner:
+  ssl-certificate:
     build:
       context: .
       target: production
