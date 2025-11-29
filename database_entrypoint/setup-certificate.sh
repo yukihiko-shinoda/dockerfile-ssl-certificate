@@ -4,7 +4,8 @@ set -eu
 DOMAIN_NAME=${DOMAIN_NAME-database}
 SERVERKEY="/etc/pki/tls/private/serverkey-${DOMAIN_NAME}.pem"
 
-group_database=$([ $(which postgres) ] && echo "postgres" || echo "mysql")
+# In MySQL Image, which command is not installed
+group_database=$([ $(command -v postgres) ] && echo "postgres" || echo "mysql")
 
 chown "root:${group_database}" "${SERVERKEY}"
 chmod 640 "${SERVERKEY}"

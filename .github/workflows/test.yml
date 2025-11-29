@@ -17,14 +17,42 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
-      - id: extract-tag
-        run: echo "DOCKER_TAG=test" >> $GITHUB_ENV
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
       - uses: docker/bake-action@v6
         with:
           builder: ${{ steps.buildx.outputs.name }}
-          target: app-release
-      - uses: actions/checkout@v6
+          targets: app-release
+        env:
+          DOCKER_TAG: test
+      - uses: docker/bake-action@v6
+        with:
+          load: true
+          builder: ${{ steps.buildx.outputs.name }}
+        env:
+          DOCKER_TAG: test
       - name: Test that running without SUPPORT_ROOT_DOMAIN should succeed
         run: docker compose run --rm ssl-certificate
+      - name: Tear down
+        run: docker compose down -v
+      - name: Test that running with SUPPORT_ROOT_DOMAIN should succeed
+        run: docker compose -f compose.yml -f compose.test.yml run --rm ssl-certificate
+      - name: Tear down
+        run: docker compose -f compose.yml -f compose.test.yml down -v
+      - name: Test that running with SUPPORT_ROOT_DOMAIN should succeed
+        id: test_database
+        run: |
+          CONTAINER_ID=$(docker compose -f compose.yml -f compose.test.yml run -d --rm database mysqld)
+          echo "Started database container with ID: $CONTAINER_ID"
+          timeout 60s docker logs --follow --tail=0 "$CONTAINER_ID" 2>&1 | grep --max-count=1 'ready for connections\.'
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_OUTPUT
+      - name: Debug
+        if: always()
+        run: docker logs ${{ steps.test_database.outputs.CONTAINER_ID }} 2>&1
+      - name: Tear down
+        run: |
+          docker stop ${{ steps.test_database.outputs.CONTAINER_ID }}
+          docker compose -f compose.yml -f compose.test.yml down -v
       - name: Test that SSL certificate should work well
         run: docker compose -f compose.yml -f compose.test.yml run --rm mysql-client
