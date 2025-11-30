@@ -13,7 +13,7 @@ ENV VIRTUAL_ENV=/opt/venv \
     PATH="/root/.local/bin:/opt/venv/bin:$PATH" \
 # Official documentation lacks this setting, otherwise, installed binary isn't prioritized than /usr/local/bin/
     UV_PROJECT_ENVIRONMENT=/opt/venv/
-RUN uv pip install --no-cache-dir ansible-runner==2.3.6 ansible-core==2.16.6
+RUN uv pip install --no-cache-dir ansible-runner==2.4.2 ansible-core==2.20.0
 RUN for dir in /home/runner /home/runner/.ansible /home/runner/.ansible/tmp /runner /home/runner /runner/env /runner/inventory /runner/project /runner/artifacts ; \
     do \
       mkdir -m 0775 -p $dir ; \
@@ -28,7 +28,6 @@ RUN for dir in /home/runner /home/runner/.ansible /home/runner/.ansible/tmp /run
     done
 WORKDIR /runner
 ENV HOME=/home/runner
-ENTRYPOINT ["uv", "run"]
 CMD ["ansible-runner", "run", "/runner"]
 COPY runner /runner
 ENV RUNNER_PLAYBOOK=playbook.yml
