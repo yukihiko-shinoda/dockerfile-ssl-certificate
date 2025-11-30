@@ -1,13 +1,19 @@
 # Migrated from RedHat, It might be oriented towards closed products
-FROM amazonlinux:2023.4.20240401.1 AS production
-RUN dnf update -y && dnf install -y python3.11-3.11.6-1.amzn2023.0.1 openssl-3.0.8-1.amzn2023.0.11 && dnf clean all
-RUN ln -s /usr/bin/python3.11 /usr/bin/python
+FROM amazonlinux:2023.9.20251117.1 AS production
+RUN dnf update -y && dnf install -y openssl-3.2.2-1.amzn2023.0.2 && dnf clean all
 # Do not change what the /usr/bin/python3 symlink points to because this might break the core functionality of AL2023:
 # - Python in AL2023 - Amazon Linux 2023
 #   https://docs.aws.amazon.com/linux/al2023/ug/python.html
-RUN curl -O https://bootstrap.pypa.io/get-pip.py \
- && python get-pip.py --trusted-host pypi.python.org
-RUN python -m pip install --no-cache-dir ansible-runner==2.3.6 ansible-core==2.16.6
+COPY --from=ghcr.io/astral-sh/uv:0.9.13 /uv /uvx /bin/
+RUN uv python install 3.13.9 && uv python pin --global --verbose 3.13.9 \
+ && uv venv /opt/venv
+# Use the virtual environment automatically
+ENV VIRTUAL_ENV=/opt/venv \
+# Place entry points in the environment at the front of the path
+    PATH="/root/.local/bin:/opt/venv/bin:$PATH" \
+# Official documentation lacks this setting, otherwise, installed binary isn't prioritized than /usr/local/bin/
+    UV_PROJECT_ENVIRONMENT=/opt/venv/
+RUN uv pip install --no-cache-dir ansible-runner==2.3.6 ansible-core==2.16.6
 RUN for dir in /home/runner /home/runner/.ansible /home/runner/.ansible/tmp /runner /home/runner /runner/env /runner/inventory /runner/project /runner/artifacts ; \
     do \
       mkdir -m 0775 -p $dir ; \
@@ -22,6 +28,7 @@ RUN for dir in /home/runner /home/runner/.ansible /home/runner/.ansible/tmp /run
     done
 WORKDIR /runner
 ENV HOME=/home/runner
+ENTRYPOINT ["uv", "run"]
 CMD ["ansible-runner", "run", "/runner"]
 COPY runner /runner
 ENV RUNNER_PLAYBOOK=playbook.yml
@@ -33,4 +40,4 @@ FROM production AS development
 #   DL3013: For development
 #   SC2174: Maybe hadolint's bug
 # hadolint ignore=DL3013,SC2174
-RUN python -m pip install --no-cache-dir ansible-lint
+RUN uv pip install --no-cache-dir ansible-lint
