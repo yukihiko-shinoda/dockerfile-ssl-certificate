@@ -7,3 +7,4 @@ services:
     environment:
       DOMAIN_NAME: exampledomain.com
       SUPPORT_ROOT_DOMAIN: ${SUPPORT_ROOT_DOMAIN:-false}
+    image: futureys/ssl-certificate:latest
