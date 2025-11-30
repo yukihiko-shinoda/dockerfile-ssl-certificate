@@ -1,0 +1,15 @@
+[dependency-groups]
+dev = [
+  "ansible-lint",
+]
+
+[project]
+name = "ansible-runner-ssl-certificate"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+  "ansible-runner",
+  "ansible-core",
+]
