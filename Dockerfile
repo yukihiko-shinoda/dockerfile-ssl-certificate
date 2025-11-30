@@ -16,7 +16,7 @@ ENV VIRTUAL_ENV=/opt/venv \
 RUN uv pip install --no-cache-dir ansible-runner==2.4.2 ansible-core==2.20.0
 RUN for dir in /home/runner /home/runner/.ansible /home/runner/.ansible/tmp /runner /home/runner /runner/env /runner/inventory /runner/project /runner/artifacts ; \
     do \
-      mkdir -m 0775 -p $dir ; \
+      mkdir -m 0775 $dir ; \
       chmod -R g+rwx $dir ; \
       chgrp -R root $dir ; \
     done \
