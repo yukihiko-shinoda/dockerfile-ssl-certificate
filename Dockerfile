@@ -28,7 +28,6 @@ RUN for dir in /home/runner /home/runner/.ansible /home/runner/.ansible/tmp /run
     done
 WORKDIR /runner
 ENV HOME=/home/runner
-ENTRYPOINT ["uv", "run"]
 CMD ["ansible-runner", "run", "/runner"]
 COPY runner /runner
 ENV RUNNER_PLAYBOOK=playbook.yml
