@@ -34,7 +34,7 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s # Adjust based on your MySQL initialization time
-    image: mysql:9.5.0
+    image: mysql:9.6.0
     volumes:
       # To enable SSL for MySQL serving.
       - pki:/etc/pki
