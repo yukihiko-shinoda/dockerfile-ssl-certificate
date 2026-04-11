@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           submodules: recursive
-      - uses: docker/bake-action@v6
+      - uses: docker/bake-action@v7
         with:
           push: true
           builder: ${{ steps.buildx.outputs.name }}
