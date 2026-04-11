@@ -20,13 +20,13 @@ jobs:
       - uses: actions/checkout@v6
         with:
           submodules: recursive
-      - uses: docker/bake-action@v6
+      - uses: docker/bake-action@v7
         with:
           builder: ${{ steps.buildx.outputs.name }}
           targets: app-release
         env:
           DOCKER_TAG: test
-      - uses: docker/bake-action@v6
+      - uses: docker/bake-action@v7
         with:
           load: true
           builder: ${{ steps.buildx.outputs.name }}
