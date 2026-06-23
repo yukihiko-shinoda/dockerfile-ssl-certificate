@@ -15,7 +15,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
       - id: extract-tag
         run: echo "DOCKER_TAG=$(echo ${GITHUB_REF#refs/tags/v})" >> $GITHUB_ENV
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
       - uses: docker/bake-action@v7
